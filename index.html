@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            function process_submit() {
+                var input_text = document.getElementById('input_text').value;
+                console.log("input_text: " + input_text);
+                var dialect = document.querySelector('input[name = "dialect"]:checked').value;
+                console.log("dialect: " + dialect);
+                var gender = document.querySelector('input[name = "gender"]:checked').value;
+                console.log("gender: " + gender);
+                $.ajax({
+                    url: "https://texttospeech.googleapis.com//v1beta1/text:synthesize?key=AIzaSyCsrfikbupfgSVSagYg_SqTszfGB2CMF2s",
+                    type: "POST",
+                    data: JSON.stringify({
+                        "input": {
+                            "text": input_text
+                        }, 
+                        "voice": {
+                            "languageCode": dialect, 
+                            "ssmlGender": gender
+                        }, 
+                        "audioConfig": {
+                            "audioEncoding":"MP3"
+                        }
+                    }),
+                    contentType: 'application/json',
+                    success: function (result) {
+                        process_response(result);
+                    },
+                    error: function (request, status, error) {
+                        console.log("ERROR: Request: " + JSON.stringify(request) + ", status: " + status);
+                    }
+                });
+                return false;
+            }
+            
+            function process_response(result) {
+                console.log("response: " + result);
+                
+                var audioControl = document.getElementById('audio');
+                audioControl.onerror = function() {
+                    console.log(audioControl.error);
+                };
+                audioControl.src = "data:audio/mp3;base64," + result['audioContent'];
+                audioControl.play();
+            }
+        </script>
+    </head>
+
+    <body>
+        <form>
+            <fieldset>
+                <legend>What should I say?</legend>
+                <input type="text" id="input_text" size="64">
+            </fieldset><br>
+            <fieldset>
+                <legend>Pick dialect:</legend>
+                <input type="radio" name="dialect" id="dialectUS" value="en-US" checked><label>US</label>
+                <input type="radio" name="dialect" id="dialectGB" value="en-GB"><label>UK</label>
+                <input type="radio" name="dialect" id="dialectIN" value="en-IN"><label>India</label>
+                <input type="radio" name="dialect" id="dialectAU" value="en-AU"><label>Australia</label>
+                <input type="radio" name="dialect" id="dialectNG" value="en-NG"><label>Nigeria</label>
+            </fieldset><br>
+            <fieldset>
+                <legend>Pick gender:</legend>
+                <input type="radio" name="gender" id="genderF" value="FEMALE" checked><label>Female</label>
+                <input type="radio" name="gender" id="genderM" value="MALE"><label>Male</label>
+                <input type="radio" name="gender" id="genderN" value="NEUTRAL"><label>Neutral</label>
+            </fieldset><br>
+            <p>
+                <input type="submit" value="Submit" onclick="return process_submit()"><br>
+            </p>
+        </form>
+        <p>
+            <br><audio controls="true" id="audio" src=""></audio><br>
+        </p>
+    </body>
+
+</html>
+
